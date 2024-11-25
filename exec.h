@@ -1,6 +1,11 @@
 #include <fcntl.h>
 #include <stdbool.h>
+#include <stddef.h>
+#include <stdlib.h>
 #include <sys/types.h>
+#include <unistd.h>
+#include <stdio.h>
+#include "libft/includes/libft.h"
 
 #define IN 0
 #define OUT 1

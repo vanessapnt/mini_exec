@@ -6,7 +6,7 @@
 /*   By: varodrig <varodrig@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/25 15:16:21 by varodrig          #+#    #+#             */
-/*   Updated: 2024/11/25 15:42:38 by varodrig         ###   ########.fr       */
+/*   Updated: 2024/11/25 18:56:59 by varodrig         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -127,37 +127,96 @@ int	size_linked_list(t_args *args)
 
 create_args(t_exec *temp, int args_nb, char *args[args_nb])
 {
-	t_args *curr;
-	int i;
+	t_args	*curr;
+	int		i;
 
 	i = 0;
 	args[i] = temp->cmd;
 	curr = temp->args;
 	i++;
-	while(curr)
+	while (curr)
 	{
 		args[i] = curr->value;
 		curr = temp->next;
 		i++;
 	}
-	args[i] = "NULL";
+	args[args_nb] = NULL;
+}
+
+int	ft_char_count(char *str, char c)
+{
+	int	count;
+	int	i;
+
+	count = 0;
+	i = 0;
+	while (str[i])
+	{
+		if (str[i++] == c)
+			count++;
+	}
+	return (count);
+}
+
+char	*find_path(char *cmd, t_env *envp)
+{
+	char	**paths;
+	char	*path;
+	char	*exec;
+	t_env	*curr;
+	char	*value;
+	int		i;
+
+	while (curr)
+	{
+		if (ft_strncmp("PATH=", curr->id, 5) == 0)
+			break ;
+		curr = curr->next;
+	}
+	paths = ft_split(curr->value, ':');
+	i = 0;
+	while (paths[i++])
+	{
+		path = ft_strjoin(paths[i], "/");
+		exec = ft_strjoin(path, cmd);
+		free(path);
+		if (!access(exec, X_OK | F_OK))
+		{
+			ft_free_all(paths);
+			return (exec);
+		}
+		free(exec);
+	}
+	ft_free_all(paths);
+	return (ft_strdup(cmd));
 }
 
 int	ft_execution(t_ctx *ctx, t_exec *temp)
 {
-	int args_nb;
+	int		args_nb;
+	char	*path;
+	char	*args[size_args(temp->args) + 2];
 
-	args_nb = size_args(temp->args)+ 2;
-	char	*args[args_nb];
-
+	args_nb = size_args(temp->args) + 2;
 	// execve(path, comd, envp);
 	// char	*args[] = {"/bin/ls", "-l", "/home", NULL};
 	create_args(temp, args_nb, args);
 	if (execve(temp->cmd, args, ctx->envp) == -1)
-		find_path()
+	{
+		path = find_path(temp->cmd, ctx->envp);
+		if (execve(temp->cmd, args, ctx->envp) == -1)
+		{
+			free(path);
+			perror("Error with execve");
+			free(path);
+			exit(1);
+		}
+		free(path);
+		return (0);
+	}
 }
 
-child_process(t_ctx *ctx, int (*fd)[2], int i, t_exec *temp)
+int	child_process(t_ctx *ctx, int (*fd)[2], int i, t_exec *temp)
 {
 	close_fds((ctx->exec_count) + 1, fd, i, false);
 	dup2(fd[i][0], IN);
@@ -169,6 +228,19 @@ child_process(t_ctx *ctx, int (*fd)[2], int i, t_exec *temp)
 		exit(1);
 	}
 	close_fds((ctx->exec_count) + 1, fd, i, true);
+	return (0);
+}
+
+void	ft_wait_all(int childs, int *pid)
+{
+	int	i;
+
+	i = 0;
+	while (i < childs)
+	{
+		waitpid(pid[i], NULL, 0);
+		i++;
+	}
 }
 
 void	exec(t_ctx *ctx)
@@ -195,4 +267,67 @@ void	exec(t_ctx *ctx)
 		i++;
 		temp = temp->next;
 	}
+	ft_wait_all(ctx->exec_count, pids);
+	return (0);
+}
+
+//simplified parsing part :
+
+// Fonction pour créer une commande de test
+t_exec	*create_test_command(void)
+{
+	t_exec		*command;
+	t_args		*args;
+	t_filenames	*redirs;
+
+	command = malloc(sizeof(t_exec));
+	args = malloc(sizeof(t_args));
+	redirs = NULL;
+	// Créer une commande "ls"
+	command->cmd = "ls";
+	args->value = "-l"; // Argument pour "ls"
+	args->next = NULL;
+	command->args = args;
+	// Pas de redirection dans cet exemple
+	command->redirs = redirs;
+	command->next = NULL;
+	return (command);
+}
+
+// Fonction pour initialiser le contexte avec `envp`
+t_ctx	*create_test_ctx(void)
+{
+	t_ctx	*ctx;
+
+	ctx = malloc(sizeof(t_ctx));
+	ctx->def_in = 0;
+	ctx->def_out = 1;
+	ctx->exit_code = 0;
+	ctx->exec_count = 1;               // Nous n'avons qu'une commande ici
+	ctx->exec = create_test_command(); // Ajouter une commande à exécuter
+	// Initialiser un environnement simplifié
+	char *env[] = {
+		"PATH=/bin:/usr/bin", // Définir le chemin pour chercher les exécutables
+		"HOME=/home/user",
+		"USER=testuser",
+		NULL // Doit toujours finir par NULL
+	};
+	ctx->envp = env;
+	return (ctx);
+}
+
+int	main(void)
+{
+	// Initialisation du contexte de test
+	t_ctx *ctx = create_test_ctx();
+
+	// Exécution des commandes
+	exec(ctx);
+
+	// Libération de la mémoire
+	free(ctx->exec->args);
+	free(ctx->exec);
+	free(ctx);
+
+	return (0);
 }
