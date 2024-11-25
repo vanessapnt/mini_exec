@@ -1,4 +1,9 @@
+#include <fcntl.h>
+#include <stdbool.h>
 #include <sys/types.h>
+
+#define IN 0
+#define OUT 1
 
 typedef struct s_env
 {
