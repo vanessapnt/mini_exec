@@ -3,62 +3,65 @@
 /*                                                        :::      ::::::::   */
 /*   ft_printf.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: yilin <yilin@student.42.fr>                +#+  +:+       +#+        */
+/*   By: tsuchen <tsuchen@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/05/28 18:42:15 by yilin             #+#    #+#             */
-/*   Updated: 2024/06/03 15:52:30 by yilin            ###   ########.fr       */
+/*   Created: 2024/05/17 13:59:04 by tsuchen           #+#    #+#             */
+/*   Updated: 2024/05/30 18:44:12 by tsuchen          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_printf.h"
-//check_format
-static int	check_format(const char specifier, va_list args)
+
+int	ft_printf(const char *fmt, ...)
 {
-	int	count;
+	va_list	ap;
+	int		count;
 
-	count = 0;
-	if (specifier == 'c')
-		count += ft_put_char(va_arg(args, int));
-	else if (specifier == 's')
-		count += ft_put_str(va_arg(args, char *));
-	else if (specifier == 'p')
-		count += ft_put_ptr(va_arg(args, void *));
-	else if (specifier == 'd' || specifier == 'i')
-		count += ft_put_int(va_arg(args, int));
-	else if (specifier == 'u')
-		count += ft_put_unsign(va_arg(args, unsigned int));
-	else if (specifier == 'x' || specifier == 'X')
-		count += ft_put_hex(va_arg(args, unsigned int), specifier);
-	else if (specifier == '%')
-		return ((int)write(1, &specifier, 1));
-	else
-		count = -1;
-	return (count);
-}
-
-int	ft_printf(const char *format, ...)
-{
-	int		print_len;
-	va_list	args;
-
-	print_len = 0;
-	if (!format)
+	if (!fmt)
 		return (-1);
-	va_start(args, format);
-	while (*format)
+	va_start(ap, fmt);
+	count = 0;
+	while (*fmt)
 	{
-		if (*format == '%')
+		if (*fmt == '%')
 		{
-			format++;
-			if (*format)
-				print_len += check_format(*format, args);
+			if (ft_is_spec(*(fmt + 1)) == 1)
+				count += ft_print_spec(*(++fmt), &ap);
 			else
-				return (-1);
+				fmt = ft_procs_flag(++fmt, &ap, &count);
 		}
 		else
-			print_len += write(1, format, 1);
-		format++;
+			count += ft_print_char(*fmt);
+		if (!fmt)
+			return (va_end(ap), -1);
+		++fmt;
 	}
-	va_end(args);
-	return (print_len);
+	va_end(ap);
+	return (count);
 }
+/*
+#include <stdio.h>
+int	main(void)
+{
+	int	test;
+	int	real;
+	char	a = 'G';
+	
+	printf(" ==> Real function <==\n");
+	real = printf("No arg %%\\\"\a\b\e\f\n\r\t\voct\060hex\x5auni\u2B50");
+	printf("\n ==> My function <==\n");
+	test = ft_printf("No arg %%\\\"\a\b\e\f\n\r\t\voct\060hex\x5auni\u2B50");
+	printf("\n");
+	printf("test: %d, real: %d\n", test, real);
+	printf(" ==> Real function 2 <== \n");
+	real = printf("Spec c1:%c, %%, c2:%c, s:%s, p:%p\n", a, 'H', "STR", &a);
+	printf(" ==> My function 2 <== \n");
+	test = ft_printf("Spec c1:%c, %%, c2:%c, s:%s, p:%p\n", a, 'H', "STR", &a);
+	printf("test: %d, real: %d\n", test, real);
+	printf(" ==> Real function 3 <== \n");
+	real = printf("d:%d, i:%i, u:%u, x:%x, X:%X\n", -42, -42, -42, -42, -42);
+	printf(" ==> My function 3 <== \n");
+	test = ft_printf("d:%d, i:%i, u:%u, x:%x, X:%X\n", -42, -42, -42, -42, -42);
+	printf("test: %d, real: %d\n", test, real);
+	return (0);
+}*/

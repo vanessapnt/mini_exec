@@ -3,143 +3,84 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: yilin <yilin@student.42.fr>                +#+  +:+       +#+         #
+#    By: okoca <okoca@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2024/05/17 11:22:23 by yilin             #+#    #+#              #
-#    Updated: 2024/09/28 17:03:34 by yilin            ###   ########.fr        #
+#    Created: 2024/06/15 10:05:55 by tsuchen           #+#    #+#              #
+#    Updated: 2024/07/18 15:31:05 by okoca            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-# **************************************************************************** #
-#                              COLOR SETTING                                   #
-# **************************************************************************** #
+NAME		= libft.a
 
-COLOR_RESET = \033[0m
-PINKB = \033[1;95m
-REDB = \033[1;91m
-ROSEB = \033[1;38;5;225m
-BLUEB = \033[1;34m
-GREENB = \033[1;38;5;85m
-PURPLEB = \033[1;38;5;55m
+SRCS_LIBC	= ft_isalpha.c ft_isdigit.c ft_isalnum.c ft_isascii.c ft_isprint.c \
+		  ft_strlen.c ft_memset.c ft_bzero.c ft_memcpy.c ft_memmove.c \
+		  ft_strlcpy.c ft_strlcat.c ft_toupper.c ft_tolower.c ft_strchr.c \
+		  ft_strrchr.c ft_strncmp.c ft_memchr.c ft_memcmp.c ft_strnstr.c \
+		  ft_atoi.c ft_calloc.c ft_strdup.c ft_strcmp.c ft_atof.c ft_strndup.c \
+		  ft_atol.c
 
-# **************************************************************************** #
-#                                 MAIN                                         #
-# **************************************************************************** #
+SRCS_ARRAY	= ft_substr.c ft_strjoin.c ft_strtrim.c ft_split.c ft_itoa.c \
+		  ft_strmapi.c ft_striteri.c ft_putchar_fd.c ft_putstr_fd.c ft_putendl_fd.c \
+		  ft_putnbr_fd.c ft_split_quote.c ft_advanced_sort_string_tab.c \
+		  ft_arr_size.c ft_free_all.c ft_split2.c ft_ltoa.c
 
-NAME = libft.a
+SRCS_LIST	= ft_lstnew_bonus.c ft_lstadd_front_bonus.c ft_lstsize_bonus.c \
+		  ft_lstlast_bonus.c ft_lstadd_back_bonus.c ft_lstdelone_bonus.c \
+		  ft_lstclear_bonus.c ft_lstiter_bonus.c ft_lstmap_bonus.c
 
-# **************************************************************************** #
-#                               DIRECTORIES                                    #
-# **************************************************************************** #
+SRCS_PRINTF	= ft_print_char.c ft_print_digit.c ft_printf.c ft_print_mem.c \
+		  ft_print_spec.c ft_print_str.c ft_is_spec.c ft_is_left_bonus.c \
+		  ft_gen_wid_pre_bonus.c ft_dgt_cnt_abs_bonus.c ft_have_zero_bonus.c \
+		  ft_have_alt_bonus.c ft_have_space_bonus.c ft_have_plus_bonus.c \
+		  ft_print_char_f_bonus.c ft_print_str_f_bonus.c ft_print_mem_f_bonus.c \
+		  ft_print_spec_f_bonus.c ft_print_uint_f_bonus.c ft_print_sint_f_bonus.c \
+		  ft_print_sign_bonus.c ft_print_alt_bonus.c ft_procs_flag_bonus.c \
+		  ft_rm_plus_space_bonus.c ft_rm_alt_bonus.c
 
-HEADER = -I includes/
-SRCS_DIR = srcs/
-OBJS_DIR = objs/
+SRCS_GNL	= get_next_line_bonus.c get_next_line_utils_bonus.c
 
-# **************************************************************************** #
-#                         SRCS, OBJS, DEPENTDENCIES                            #
-# **************************************************************************** #
+HEADERS = ft_printf.h get_next_line_bonus.h libft.h
 
-ARRAY_DIR  = $(SRCS_DIR)ft_array/ft_split.c\
-             $(SRCS_DIR)ft_array/ft_strchr.c\
-             $(SRCS_DIR)ft_array//ft_strdup.c\
-             $(SRCS_DIR)ft_array//ft_striteri.c\
-             $(SRCS_DIR)ft_array/ft_strjoin.c\
-             $(SRCS_DIR)ft_array/ft_strlcat.c\
-             $(SRCS_DIR)ft_array/ft_strlcpy.c\
-             $(SRCS_DIR)ft_array/ft_strlen.c\
-             $(SRCS_DIR)ft_array/ft_strmapi.c\
-             $(SRCS_DIR)ft_array/ft_strncmp.c\
-             $(SRCS_DIR)ft_array/ft_strlcpy.c\
-             $(SRCS_DIR)ft_array//ft_strnstr.c\
-             $(SRCS_DIR)ft_array/ft_strrchr.c\
-             $(SRCS_DIR)ft_array/ft_strtrim.c\
-             $(SRCS_DIR)ft_array/ft_substr.c\
-			 $(SRCS_DIR)ft_array/ft_strcmp.c
+LIBC_PATH	= srcs/libc/
+ARRAY_PATH	= srcs/array/
+LIST_PATH	= srcs/list/
+PRINTF_PATH	= srcs/ft_printf/
+GNL_PATH	= srcs/gnl/
 
-IS_DIR     = $(SRCS_DIR)ft_is/ft_isalnum.c\
-             $(SRCS_DIR)ft_is/ft_isalpha.c\
-             $(SRCS_DIR)ft_is/ft_isascii.c\
-             $(SRCS_DIR)ft_is/ft_isdigit.c\
-             $(SRCS_DIR)ft_is/ft_isprint.c 
+SRCS		= $(addprefix $(LIBC_PATH), $(SRCS_LIBC)) \
+		  $(addprefix $(ARRAY_PATH), $(SRCS_ARRAY)) \
+		  $(addprefix $(LIST_PATH), $(SRCS_LIST)) \
+		  $(addprefix $(PRINTF_PATH), $(SRCS_PRINTF)) \
+		  $(addprefix $(GNL_PATH), $(SRCS_GNL))
 
-LST_DIR    = $(SRCS_DIR)ft_lst/ft_lstadd_back.c\
-             $(SRCS_DIR)ft_lst/ft_lstadd_front.c\
-             $(SRCS_DIR)ft_lst/ft_lstclear.c\
-             $(SRCS_DIR)ft_lst/ft_lstdelone.c\
-             $(SRCS_DIR)ft_lst/ft_lstiter.c\
-             $(SRCS_DIR)ft_lst/ft_lstlast.c\
-             $(SRCS_DIR)ft_lst/ft_lstmap.c\
-             $(SRCS_DIR)ft_lst/ft_lstnew.c\
-             $(SRCS_DIR)ft_lst/ft_lstsize.c 
-             
-MEM_DIR    = $(SRCS_DIR)ft_mem/ft_bzero.c\
-             $(SRCS_DIR)ft_mem/ft_calloc.c\
-             $(SRCS_DIR)ft_mem/ft_memchr.c\
-             $(SRCS_DIR)ft_mem/ft_memcmp.c\
-             $(SRCS_DIR)ft_mem/ft_memmove.c\
-             $(SRCS_DIR)ft_mem/ft_memset.c 
+OBJS		= $(SRCS:.c=.o)
 
-PUTFD_DIR  = $(SRCS_DIR)ft_putfd/ft_putchar_fd.c\
-             $(SRCS_DIR)ft_putfd/ft_putendl_fd.c\
-             $(SRCS_DIR)ft_putfd/ft_putnbr_fd.c\
-             $(SRCS_DIR)ft_putfd/ft_putstr_fd.c 
+HEAD		= includes/
 
-TO_DIR     = $(SRCS_DIR)ft_to/ft_atoi.c\
-             $(SRCS_DIR)ft_to/ft_itoa.c\
-             $(SRCS_DIR)ft_to/ft_tolower.c\
-             $(SRCS_DIR)ft_to/ft_toupper.c
+HDRS_DEPS	= $(addprefix $(HEAD), $(HEADERS))
 
-PRINTF_DIR = $(SRCS_DIR)ft_printf/ft_printf.c\
-             $(SRCS_DIR)ft_printf/ft_put_char.c\
-             $(SRCS_DIR)ft_printf/ft_put_hex.c\
-             $(SRCS_DIR)ft_printf/ft_put_int.c\
-             $(SRCS_DIR)ft_printf/ft_put_ptr.c\
-             $(SRCS_DIR)ft_printf/ft_put_str.c\
-             $(SRCS_DIR)ft_printf/ft_put_unsign.c
+CFLAGS		= -Wall -Wextra -Werror
 
-GNL_DIR    = $(SRCS_DIR)get_next_line/get_next_line.c
+ARC		= ar rcs
 
-SRCS       = $(ARRAY_DIR) $(IS_DIR) $(LST_DIR) $(MEM_DIR) $(PUTFD_DIR) $(TO_DIR) $(PRINTF_DIR) $(GNL_DIR)
-OBJS       = $(patsubst $(SRCS_DIR)%.c,$(OBJS_DIR)%.o,$(SRCS))
-
-# **************************************************************************** #
-#                            COMPILER & FLAGS                                  #
-# **************************************************************************** #
-
-CC = cc
-CFLAGS = -Wall -Wextra -Werror -g3
-AR = ar rcs
-RM = rm -rf
-
-# **************************************************************************** #
-#                             BUILD COMMANDS                                   #
-# **************************************************************************** #
+CC		= cc
 
 all: $(NAME)
-	@echo "$(PURPLEB)✨COMPILATION DONE!$(NAME) CREATED✨$(COLOR_RESET)"
 
-$(NAME): $(OBJS)
-	$(AR) $(NAME) $(OBJS)
-	@echo "$(BLUEB)---COMPILING--- $(NAME)$(COLOR_RESET)"
+$(NAME): $(OBJS) $(HDRS_DEPS)
+	@$(ARC) $(NAME) $(OBJS)
 
-$(OBJS_DIR)%.o: $(SRCS_DIR)%.c
-	@mkdir -p $(@D)
-	@$(CC) $(CFLAGS) $(HEADER) -c $< -o $@
+bonus: $(NAME)
 
-# **************************************************************************** #
-#                             CLEAN COMMANDS                                   #
-# **************************************************************************** #
+.c.o:
+	@$(CC) $(CFLAGS) -c $< -o $@ -I$(HEAD)
 
 clean:
-	@$(RM) $(OBJS_DIR)
-	@echo "$(BLUEB)🫧CLEAN DONE! [$(OBJS)] DELETED🫧$(COLOR_RESET)"
+	@rm -f $(OBJS)
 
 fclean: clean
-	@$(RM) $(NAME)
-	@echo "$(BLUEB)🫧🫧FCLEAN DONE! [$(NAME)] REMOVED🫧🫧$(COLOR_RESET)"
+	@rm -f $(NAME)
 
 re: fclean all
-	@echo "$(REDB)RE DONE$(COLOR_RESET)"
 
-.PHONY: all clean fclean re
+.PHONY: all clean fclean re bonus
