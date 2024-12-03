@@ -6,13 +6,15 @@
 #    By: varodrig <varodrig@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/07/08 11:20:19 by okoca             #+#    #+#              #
-#    Updated: 2024/11/26 15:00:00 by varodrig         ###   ########.fr        #
+#    Updated: 2024/12/03 19:15:39 by varodrig         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME 		= minishell
 
 SRCS_M		= main.c
+
+SRCS_BT		= bi_func.c bi_func_utils.c bi_func_utils2.c bi_err_utils.c bi_check_utils.c
 
 SRCS_EX 	= exec.c
 
@@ -37,6 +39,7 @@ BUILDER_PATH	= src/builder/
 SIGNAL_PATH	= src/signals/
 
 SRCS		= $(addprefix $(SRC), $(SRCS_M)) \
+		  $(addprefix $(BUILTINS_PATH), $(SRCS_BT)) \
 		  $(addprefix $(EXEC_PATH), $(SRCS_EX)) \
 		  $(addprefix $(LEXER_PATH), $(SRCS_LEX)) \
 		  $(addprefix $(PARSER_PATH), $(SRCS_PAR)) \
