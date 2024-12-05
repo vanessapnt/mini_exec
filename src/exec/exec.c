@@ -6,7 +6,7 @@
 /*   By: varodrig <varodrig@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/25 15:16:21 by varodrig          #+#    #+#             */
-/*   Updated: 2024/12/03 19:33:45 by varodrig         ###   ########.fr       */
+/*   Updated: 2024/12/05 15:49:29 by varodrig         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@ void	exe_close(int *fd)
 	if (fd && *fd != -1)
 	{
 		close(*fd);
+		fprintf(stderr, "close\n");
 		*fd = -1;
 	}
 }
@@ -42,14 +43,18 @@ void	close_fds(int pipes_nb, int (*fd)[2], int current_cmd,
 		if (!is_final_close)
 		{
 			if (j != current_cmd - 1)
-				close(fd[j][0]); // Close read ends except the one needed
+			{
+				exe_close(&fd[j][0]); // Close read ends except the one needed
+			}
 			if (j != current_cmd)
-				close(fd[j][1]); // Close write ends except the one needed
+			{
+				exe_close(&fd[j][1]); // Close write ends except the one needed
+			}
 		}
 		else
 		{
-			close(fd[j][0]); // Close all read ends
-			close(fd[j][1]); // Close all write ends
+			exe_close(&fd[j][0]); // Close all read ends
+			exe_close(&fd[j][1]); // Close all write ends
 		}
 		j++;
 	}
@@ -218,7 +223,6 @@ int	ft_execution(t_ctx *ctx, t_exec *temp)
 			free(path);
 			ft_free_all(envp);
 			perror("Error with execve");
-			free(path);
 			exit(1);
 		}
 		free(path);
@@ -237,10 +241,19 @@ void	child_process(t_ctx *ctx, int (*fd)[2], int i, t_exec *temp)
 	if (ctx->exec_count > 1)
 	{
 		if (i > 0)
+		{
 			dup2(fd[i - 1][0], STDIN_FILENO);
+			fprintf(stderr, "dup2\n");
+			exe_close(&fd[i - 1][0]);
+		}
 		if (i < ctx->exec_count - 1)
+		{
 			dup2(fd[i][1], STDOUT_FILENO);
+			fprintf(stderr, "dup2\n");
+			exe_close(&fd[i][1]);
+		}
 	}
+	ft_close(ctx);
 	close_fds(ctx->exec_count - 1, fd, i, false);
 	if (err_redirs(temp))
 	{
@@ -258,10 +271,13 @@ void	exe_err_coredump(int pid)
 	int	fd_tmp;
 
 	fd_tmp = dup(STDOUT_FILENO);
+	fprintf(stderr, "dup.c\n");
 	dup2(STDERR_FILENO, STDOUT_FILENO);
+	fprintf(stderr, "dup2\n");
 	printf("[%d]: Quit (core dumped)\n", pid);
 	dup2(fd_tmp, STDOUT_FILENO);
-	close(fd_tmp);
+	fprintf(stderr, "dup2\n");
+	exe_close(&fd_tmp);
 }
 
 void	exe_wait_all(t_ctx *ctx) // TODO
@@ -306,15 +322,35 @@ int	open_pipes(int pipes_nb, int (*fd)[2])
 			j = 0;
 			while (j < i)
 			{
-				close(fd[j][0]); // Close the read end
-				close(fd[j][1]); // Close the write end
+				exe_close(&fd[j][0]); // Close the read end
+				exe_close(&fd[j][1]); // Close the write end
 				j++;
 			}
 			return (-1); // Signal failure
 		}
+		fprintf(stderr, "pipe\n");
 		i++;
 	}
 	return (0); // Signal success
+}
+
+void	set_std(t_ctx *ctx, int mode)
+{
+	if (!mode)
+	{
+		ctx->def_in = dup(STDIN_FILENO);
+		fprintf(stderr, "dup.a\n");
+		ctx->def_out = dup(STDOUT_FILENO);
+		fprintf(stderr, "dup.b\n");
+	}
+	else
+	{
+		dup2(ctx->def_in, STDIN_FILENO);
+		fprintf(stderr, "dup2\n");
+		dup2(ctx->def_out, STDOUT_FILENO);
+		fprintf(stderr, "dup2\n");
+		ft_close(ctx);
+	}
 }
 
 int	exec_parent(t_ctx *ctx)
@@ -351,32 +387,18 @@ int	exec_parent(t_ctx *ctx)
 	}
 	// Close all pipes in the parent
 	close_fds(ctx->exec_count - 1, fd, -1, true);
+	set_std(ctx, 1);
 	// Wait for all child processes
 	exe_wait_all(ctx);
 	// unlink_all(ctx);
 	return (0);
 }
 
-void	set_std(t_ctx *ctx, int mode)
-{
-	if (!mode)
-	{
-		ctx->def_in = dup(STDIN_FILENO);
-		ctx->def_out = dup(STDOUT_FILENO);
-	}
-	else
-	{
-		dup2(ctx->def_in, STDIN_FILENO);
-		close(ctx->def_in);
-		dup2(ctx->def_out, STDOUT_FILENO);
-		close(ctx->def_out);
-	}
-}
-
 void	exe_dup2_close(int fd1, int fd2)
 {
 	dup2(fd1, fd2);
-	close(fd1);
+	fprintf(stderr, "dup2\n");
+	exe_close(&fd1);
 }
 
 void	unlink_all(t_ctx *ctx)
@@ -403,32 +425,45 @@ int	redirs_type(t_exec *exec, t_filenames *file)
 	if (file->type == INFILE || file->type == N_HEREDOC)
 	{
 		if (exec->fd_in != STDIN_FILENO)
-			close(exec->fd_in);
+		{
+			exe_close(&(exec->fd_in));
+		}
 		exec->fd_in = open(file->path, O_RDONLY);
+		fprintf(stderr, "open");
 		if (exec->fd_in == -1)
 		{
 			printf("error with open"); // TODO
 			return (1);
 		}
 		dup2(exec->fd_in, STDIN_FILENO);
-		close(exec->fd_in);
+		fprintf(stderr, "dup2\n");
+		exe_close(&(exec->fd_in));
 	}
 	else
 	{
 		if (exec->fd_out != STDOUT_FILENO)
-			close(exec->fd_out);
+		{
+			exe_close(&(exec->fd_out));
+		}
 		if (file->type == OUTFILE)
+		{
 			exec->fd_out = open(file->path, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+			fprintf(stderr, "open");
+		}
 		else if (file->type == APPEND)
+		{
 			exec->fd_out = open(file->path, O_WRONLY | O_CREAT | O_APPEND,
 					0644);
+			fprintf(stderr, "open");
+		}
 		if (exec->fd_out == -1)
 		{
 			printf("err1_open");
 			return (1);
 		}
 		dup2(exec->fd_out, STDOUT_FILENO);
-		close(exec->fd_out);
+		fprintf(stderr, "dup2\n");
+		exe_close(&(exec->fd_out));
 	}
 	return (0);
 }
@@ -462,8 +497,6 @@ int	exec(t_ctx *ctx)
 {
 	t_exec	*temp;
 
-	if (!(strcmp("exit", ctx->exec->cmd)))
-		return (0);
 	// il sert a quoi exit_code ?
 	if (ctx->exec_count == 0)
 		return (0);
@@ -486,9 +519,10 @@ int	exec(t_ctx *ctx)
 		unlink_all(ctx);
 		// fonction reutilisee dans le else
 		// ctx->exit_code = do_builtin(ctx, temp->cmd, temp->args); //TODO
+		ctx->exit_code = bi_do_builtin(ctx, temp->cmd, temp->args);
+		set_std(ctx, 1);
 		return (ctx->exit_code);
 	}
 	exec_parent(ctx);
-	set_std(ctx, 1);
 	return (0);
 }
